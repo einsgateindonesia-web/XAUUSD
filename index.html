@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>XAU Scalper Signal</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --bg-2: #111821;
+    --card: #151d28;
+    --card-2: #1b2531;
+    --border: #22303f;
+    --text: #e6edf3;
+    --muted: #8b98a8;
+    --green: #16c784;
+    --green-dim: #0d7a52;
+    --red: #ea3943;
+    --red-dim: #8a1f27;
+    --accent: #f0b90b;
+    --blue: #3b82f6;
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #16212e 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* HEADER */
+  header.topbar {
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #b8860b);
+    display: grid; place-items: center;
+    font-weight: 900; color: #111; font-size: 18px;
+    box-shadow: 0 4px 14px rgba(240,185,11,.35);
+  }
+  .brand h1 { font-size: 18px; letter-spacing: .3px; }
+  .brand small { color: var(--muted); font-size: 12px; display: block; }
+
+  .price-block { text-align: right; }
+  .price {
+    font-size: 34px; font-weight: 800; letter-spacing: -.5px;
+    font-variant-numeric: tabular-nums;
+    transition: color .25s;
+  }
+  .price.up { color: var(--green); }
+  .price.down { color: var(--red); }
+  .change { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .change.up { color: var(--green); }
+  .change.down { color: var(--red); }
+
+  .meta-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 6px; justify-content: flex-end;
+  }
+  .pill {
+    font-size: 11px; padding: 4px 10px; border-radius: 999px;
+    background: var(--card-2); border: 1px solid var(--border);
+    color: var(--muted); font-weight: 600; letter-spacing: .3px;
+  }
+  .pill.open { color: var(--green); border-color: rgba(22,199,132,.35); }
+  .pill.closed { color: var(--red); border-color: rgba(234,57,67,.35); }
+  .pill.session { color: var(--accent); border-color: rgba(240,185,11,.35); }
+
+  button {
+    background: var(--card-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  button:hover { background: #22303f; border-color: #2f4155; }
+  button:active { transform: scale(.97); }
+  button.primary { background: var(--accent); color: #111; border-color: transparent; }
+  button.primary:hover { background: #ffd54a; }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* SECTIONS */
+  section { margin-bottom: 16px; }
+  .section-title {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 10px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: ""; width: 3px; height: 14px; border-radius: 2px;
+    background: var(--accent);
+  }
+
+  /* SIGNAL CARD */
+  .signal-card {
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .signal-card.buy { border-color: rgba(22,199,132,.4); }
+  .signal-card.sell { border-color: rgba(234,57,67,.4); }
+  .signal-card.buy::before,
+  .signal-card.sell::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 5px;
+  }
+  .signal-card.buy::before { background: var(--green); }
+  .signal-card.sell::before { background: var(--red); }
+
+  .signal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+  }
+  .signal-dir {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 24px; font-weight: 800; letter-spacing: -.5px;
+  }
+  .dir-badge {
+    padding: 6px 14px; border-radius: 10px; font-size: 18px;
+    font-weight: 800; letter-spacing: 1px;
+  }
+  .buy .dir-badge { background: rgba(22,199,132,.15); color: var(--green); border: 1px solid rgba(22,199,132,.4); }
+  .sell .dir-badge { background: rgba(234,57,67,.15); color: var(--red); border: 1px solid rgba(234,57,67,.4); }
+
+  .signal-status {
+    font-size: 12px; font-weight: 700; padding: 5px 12px;
+    border-radius: 999px; letter-spacing: .5px;
+  }
+  .status-active { background: rgba(59,130,246,.15); color: var(--blue); border: 1px solid rgba(59,130,246,.4); }
+  .status-tp { background: rgba(22,199,132,.15); color: var(--green); border: 1px solid rgba(22,199,132,.4); }
+  .status-sl { background: rgba(234,57,67,.15); color: var(--red); border: 1px solid rgba(234,57,67,.4); }
+  .status-exp { background: rgba(139,152,168,.15); color: var(--muted); border: 1px solid rgba(139,152,168,.4); }
+
+  .grid-4 {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin-bottom: 14px;
+  }
+  .stat-box {
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+  }
+  .stat-box .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; font-weight: 700; }
+  .stat-box .value { font-size: 18px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .value.buy { color: var(--green); }
+  .value.sell { color: var(--red); }
+
+  .reason-box {
+    background: var(--card-2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 14px;
+    margin-top: 12px;
+  }
+  .reason-box h4 { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .reason-box ul { list-style: none; padding: 0; }
+  .reason-box li {
+    font-size: 14px; color: var(--text); padding: 5px 0 5px 20px;
+    position: relative; line-height: 1.55;
+  }
+  .reason-box li::before {
+    content: "▸"; position: absolute; left: 4px; color: var(--accent); font-weight: 700;
+  }
+
+  .signal-meta {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    margin-top: 12px; font-size: 12px; color: var(--muted);
+  }
+
+  .empty-signal {
+    text-align: center; padding: 40px 20px; color: var(--muted);
+    background: var(--card); border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+  .empty-signal .icon { font-size: 40px; margin-bottom: 10px; opacity: .5; }
+  .empty-signal p { font-size: 14px; }
+  .empty-signal small { display: block; margin-top: 6px; font-size: 12px; opacity: .7; }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .8px; font-weight: 700; margin-bottom: 6px;
+  }
+  .stat-card .value {
+    font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;
+    letter-spacing: -.5px;
+  }
+  .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .value.green { color: var(--green); }
+  .value.red { color: var(--red); }
+
+  /* HISTORY */
+  .history-controls {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .seg {
+    display: inline-flex; background: var(--card-2);
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    background: transparent; border: none; border-radius: 0;
+    padding: 7px 12px; font-size: 12px;
+  }
+  .seg button.active { background: var(--accent); color: #111; }
+
+  .table-wrap {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--card-2); }
+  th {
+    text-align: left; padding: 11px 12px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 12px; border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  }
+  .tag.buy { background: rgba(22,199,132,.15); color: var(--green); }
+  .tag.sell { background: rgba(234,57,67,.15); color: var(--red); }
+  .tag.profit { background: rgba(22,199,132,.15); color: var(--green); }
+  .tag.loss { background: rgba(234,57,67,.15); color: var(--red); }
+  .tag.be { background: rgba(139,152,168,.15); color: var(--muted); }
+
+  td.green { color: var(--green); font-weight: 600; }
+  td.red { color: var(--red); font-weight: 600; }
+
+  .empty-table { text-align: center; padding: 30px; color: var(--muted); font-size: 14px; }
+
+  /* BOTTOM */
+  .bottom-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .info-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .info-card h3 {
+    font-size: 14px; margin-bottom: 10px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .info-card ol, .info-card ul { padding-left: 20px; }
+  .info-card li { font-size: 13px; color: var(--text); margin-bottom: 6px; line-height: 1.55; }
+  .info-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .disclaimer {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(234,57,67,.12), rgba(240,185,11,.08));
+    border: 1px solid rgba(234,57,67,.4);
+    border-radius: var(--radius); padding: 18px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .disclaimer .warn {
+    font-size: 26px; line-height: 1; flex-shrink: 0;
+  }
+  .disclaimer strong { color: var(--red); display: block; margin-bottom: 6px; font-size: 14px; letter-spacing: .5px; }
+  .disclaimer p { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 12px;
+    padding: 20px 0 8px; opacity: .7;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 720px) {
+    body { padding: 10px; }
+    header.topbar { grid-template-columns: 1fr; text-align: left; }
+    .price-block { text-align: left; }
+    .meta-row { justify-content: flex-start; }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .price { font-size: 28px; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 720px; }
+    .signal-dir { font-size: 20px; }
+  }
+  @media (max-width: 420px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .stat-card .value { font-size: 18px; }
+  }
+
+  /* pulse */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); margin-right: 6px;
+    animation: pulse 1.6s infinite;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ============ HEADER ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">Au</div>
+      <div>
+        <h1>XAU Scalper Signal</h1>
+        <small><span class="live-dot"></span>Live • XAUUSD • Scalping</small>
+      </div>
+    </div>
+    <div class="price-block">
+      <div class="price" id="price">--</div>
+      <div class="change" id="change">--</div>
+      <div class="meta-row">
+        <span class="pill" id="marketStatus">—</span>
+        <span class="pill session" id="sessionInfo">—</span>
+        <span class="pill" id="newsInfo">—</span>
+      </div>
+      <div class="header-actions" style="margin-top:8px; justify-content:flex-end;">
+        <button id="refreshBtn">↻ Refresh</button>
+        <button id="simulateBtn" class="primary">⚡ Simulasi Sinyal</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SIGNAL AKTIF ============ -->
+  <section>
+    <div class="section-title">Sinyal Aktif</div>
+    <div id="signalContainer"></div>
+  </section>
+
+  <!-- ============ STATISTIK ============ -->
+  <section>
+    <div class="section-title">Statistik Performa</div>
+    <div class="stats-grid" id="statsGrid"></div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section>
+    <div class="section-title">Signal History</div>
+    <div class="history-controls">
+      <div class="seg" id="filterResult">
+        <button data-r="all" class="active">All</button>
+        <button data-r="profit">Profit</button>
+        <button data-r="loss">Loss</button>
+      </div>
+      <div class="seg" id="filterTime">
+        <button data-t="today" class="active">Hari Ini</button>
+        <button data-t="7d">7 Hari</button>
+        <button data-t="30d">30 Hari</button>
+        <button data-t="all">All</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th><th>Arah</th><th>Entry</th><th>SL</th><th>TP</th>
+            <th>Hasil</th><th>Pip</th><th>USD (0.01)</th><th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ BOTTOM ============ -->
+  <section>
+    <div class="bottom-grid">
+      <div class="info-card">
+        <h3>📋 Aturan Trading</h3>
+        <ol>
+          <li><b>Bias Trend:</b> EMA 50 & EMA 200 searah.</li>
+          <li><b>Konfirmasi:</b> Minimal 2 dari RSI, MACD, Price Action, BOS.</li>
+          <li><b>Session:</b> London / New York Open (hindari Asian).</li>
+          <li><b>News:</b> Tidak ada high-impact news dekat.</li>
+          <li><b>Risk Reward:</b> Tetap 2:1, Lot tetap 0.01.</li>
+          <li><b>Maksimal:</b> 1 sinyal aktif.</li>
+        </ol>
+      </div>
+      <div class="info-card">
+        <h3>📖 Cara Membaca Sinyal</h3>
+        <ul>
+          <li><b>Entry:</b> Harga eksekusi yang disarankan.</li>
+          <li><b>SL:</b> Batas kerugian — exit jika tersentuh.</li>
+          <li><b>TP:</b> Target profit (2× jarak SL).</li>
+          <li><b>Alasan Entry:</b> Dasar teknikal sinyal ini.</li>
+          <li><b>Kelly:</b> Estimasi ukuran optimal (referensi saja).</li>
+          <li>Selalu gunakan manajemen risiko pribadi.</li>
+        </ul>
+      </div>
+      <div class="disclaimer">
+        <div class="warn">⚠️</div>
+        <div>
+          <strong>DISCLAIMER</strong>
+          <p>Ini hanya sinyal edukasi untuk tujuan pembelajaran. <b>Bukan merupakan financial advice.</b> Trading mengandung risiko tinggi dan dapat menyebabkan kerugian modal. Gunakan dengan tanggung jawab sendiri.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    XAU Scalper Signal • Educational Use Only • © <span id="year"></span>
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   XAU Scalper Signal — Engine
+   ========================================================= */
+
+const CONFIG = {
+  symbol: "XAUUSD",
+  lot: 0.01,
+  pip: 0.10,          // 1 pip XAUUSD = 0.10
+  pipValue: 0.01,     // USD per pip untuk lot 0.01 (10 oz * 0.10 * 0.01 ≈ 0.01)
+  rr: 2,              // Risk : Reward = 1 : 2
+  maxActiveSignals: 1,
+  slPips: 30,         // SL default 30 pip (3.0 USD) — realistis untuk scalping M5
+  emaFast: 50,
+  emaSlow: 200,
+  rsiPeriod: 14,
+  maxSignalAgeMin: 60 // sinyal expired setelah 60 menit
+};
+
+/* ---------------- STATE ---------------- */
+const state = {
+  price: 0,
+  prevPrice: 0,
+  candles: [],          // {t, o, h, l, c}
+  signals: [],          // history semua sinyal
+  active: null,
+  lastTick: 0,
+  tickTimer: null,
+  marketOpen: true,
+  newsBlocked: false
+};
+
+/* =========================================================
+   1. PRICE FEED (SIMULASI REALISTIS)
+   =========================================================
+   Ganti fungsi fetchPrice() dengan API real bila tersedia.
+   Contoh integrasi: Twelve Data / Metals-API / Finnhub.
+   ========================================================= */
+
+const BASE_PRICE = 2650.00;
+
+function seedCandles(n = 260) {
+  const out = [];
+  let price = BASE_PRICE;
+  const now = Date.now();
+  for (let i = n; i >= 0; i--) {
+    const drift = (Math.random() - 0.5) * 2.2;
+    const o = price;
+    const c = +(price + drift).toFixed(2);
+    const h = +(Math.max(o, c) + Math.random() * 1.1).toFixed(2);
+    const l = +(Math.min(o, c) - Math.random() * 1.1).toFixed(2);
+    out.push({ t: now - i * 60 * 1000, o, h, l, c });
+    price = c;
+  }
+  state.candles = out;
+  state.price = out[out.length - 1].c;
+  state.prevPrice = out[0].c;
+}
+
+function nextTick() {
+  const last = state.candles[state.candles.length - 1];
+  const drift = (Math.random() - 0.5) * 0.9;
+  const o = last.c;
+  const c = +(o + drift).toFixed(2);
+  const h = +(Math.max(o, c) + Math.random() * 0.4).toFixed(2);
+  const l = +(Math.min(o, c) - Math.random() * 0.4).toFixed(2);
+
+  // Tutup candle lama tiap 20 tick, buka baru
+  if (state.candles.length && Math.random() < 0.05) {
+    state.candles.push({ t: Date.now(), o, h, l, c });
+    if (state.candles.length > 400) state.candles.shift();
+  } else {
+    last.c = c; last.h = Math.max(last.h, h); last.l = Math.min(last.l, l);
+  }
+
+  state.prevPrice = state.price;
+  state.price = c;
+  state.lastTick = Date.now();
+}
+
+/* =========================================================
+   2. INDIKATOR TEKNIKAL
+   ========================================================= */
+
+function ema(values, period) {
+  if (values.length < period) return null;
+  const k = 2 / (period + 1);
+  let e = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < values.length; i++) {
+    e = values[i] * k + e * (1 - k);
+  }
+  return e;
+}
+
+function rsi(values, period = 14) {
+  if (values.length < period + 1) return null;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = values[i] - values[i - 1];
+    if (d >= 0) gains += d; else losses -= d;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  for (let i = period + 1; i < values.length; i++) {
+    const d = values[i] - values[i - 1];
+    const g = d > 0 ? d : 0;
+    const l = d < 0 ? -d : 0;
+    avgGain = (avgGain * (period - 1) + g) / period;
+    avgLoss = (avgLoss * (period - 1) + l) / period;
+  }
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - 100 / (1 + rs);
+}
+
+function macd(values, fast = 12, slow = 26, signalP = 9) {
+  if (values.length < slow + signalP) return null;
+  const emaFast = ema(values, fast);
+  const emaSlow = ema(values, slow);
+  if (emaFast == null || emaSlow == null) return null;
+  // hitung MACD line series utk signal
+  const macdSeries = [];
+  for (let i = slow; i <= values.length; i++) {
+    const slice = values.slice(0, i);
+    const f = ema(slice, fast);
+    const s = ema(slice, slow);
+    if (f != null && s != null) macdSeries.push(f - s);
+  }
+  const sig = ema(macdSeries, signalP);
+  const line = macdSeries[macdSeries.length - 1];
+  const hist = line - sig;
+  return { line, signal: sig, hist };
+}
+
+/* =========================================================
+   3. SESSION & NEWS
+   ========================================================= */
+
+function getSessionInfo() {
+  const now = new Date();
+  const utcH = now.getUTCHours();
+  // London: 07:00–16:00 UTC, NY: 12:00–21:00 UTC, overlap terbaik 12–16
+  if (utcH >= 12 && utcH < 16) return { name: "London × NY Overlap", priority: 2, active: true };
+  if (utcH >= 7 && utcH < 12) return { name: "London Open", priority: 1, active: true };
+  if (utcH >= 16 && utcH < 21) return { name: "New York", priority: 1, active: true };
+  return { name: "Asian / Off-Session", priority: 0, active: false };
+}
+
+function isMarketOpen() {
+  const d = new Date();
+  const day = d.getUTCDay(); // 0 Minggu, 6 Sabtu
+  if (day === 6) return false;
+  if (day === 0) return false;
+  if (day === 5 && d.getUTCHours() >= 21) return false;
+  return true;
+}
+
+// Simulasi: hari Rabu & Jumat di jam tertentu ada news high impact
+function hasHighImpactNews() {
+  const d = new Date();
+  const day = d.getUTCDay();
+  const utcH = d.getUTCHours();
+  // NFP Jumat 12:30 UTC, CPI Rabu 12:30 UTC (simulasi)
+  if (day === 5 && utcH === 12) return true;
+  if (day === 3 && utcH === 12) return true;
+  if (utcH === 18 && day === 4) return true; // FOMC simulasi
+  return false;
+}
+
+/* =========================================================
+   4. ANALISIS SINYAL (ATURAN KETAT)
+   ========================================================= */
+
+function detectPriceAction(candles) {
+  if (candles.length < 5) return null;
+  const c = candles[candles.length - 1];
+  const p = candles[candles.length - 2];
+  const body = Math.abs(c.c - c.o);
+  const range = c.h - c.l || 0.01;
+  const upper = c.h - Math.max(c.c, c.o);
+  const lower = Math.min(c.c, c.o) - c.l;
+
+  // Bullish engulfing
+  if (p.c < p.o && c.c > c.o && c.c > p.o && c.o < p.c) return "bullish_engulfing";
+  // Bearish engulfing
+  if (p.c > p.o && c.c < c.o && c.c < p.o && c.o > p.c) return "bearish_engulfing";
+  // Pinbar bullish (lower wick dominan)
+  if (lower > body * 2 && lower > upper * 2 && c.c > c.o) return "bullish_pinbar";
+  // Pinbar bearish (upper wick dominan)
+  if (upper > body * 2 && upper > lower * 2 && c.c < c.o) return "bearish_pinbar";
+  // Rejection
+  if (upper > body * 1.8 && c.c < c.o) return "bearish_rejection";
+  if (lower > body * 1.8 && c.c > c.o) return "bullish_rejection";
+  return null;
+}
+
+function detectBOS(candles) {
+  if (candles.length < 20) return null;
+  const recent = candles.slice(-20);
+  const highs = recent.map(c => c.h);
+  const lows = recent.map(c => c.l);
+  const last = recent[recent.length - 1];
+  const prevHigh = Math.max(...highs.slice(0, -1));
+  const prevLow = Math.min(...lows.slice(0, -1));
+  if (last.c > prevHigh) return "bullish_bos";
+  if (last.c < prevLow) return "bearish_bos";
+  return null;
+}
+
+function analyzeSignal() {
+  const closes = state.candles.map(c => c.c);
+  const price = state.price;
+
+  const ema50 = ema(closes, CONFIG.emaFast);
+  const ema200 = ema(closes, CONFIG.emaSlow);
+  const rsiVal = rsi(closes, CONFIG.rsiPeriod);
+  const macdVal = macd(closes);
+  const pa = detectPriceAction(state.candles);
+  const bos = detectBOS(state.candles);
+  const session = getSessionInfo();
+
+  const checks = {
+    trendBuy: ema50 != null && ema200 != null && price > ema50 && price > ema200 && ema50 > ema200,
+    trendSell: ema50 != null && ema200 != null && price < ema50 && price < ema200 && ema50 < ema200,
+    sessionOk: session.active,
+    newsOk: !hasHighImpactNews(),
+    noActiveSignal: !state.active || isExpired(state.active)
+  };
+
+  const bias = checks.trendBuy ? "BUY" : checks.trendSell ? "SELL" : null;
+
+  // Kumpulkan konfirmasi
+  const confirmations = [];
+  if (bias === "BUY") {
+    if (rsiVal != null && rsiVal > 50 && rsiVal < 75) confirmations.push(`RSI(14) = ${rsiVal.toFixed(1)} — momentum bullish`);
+    if (macdVal && macdVal.hist > 0 && macdVal.line > macdVal.signal) confirmations.push(`MACD histogram positif (${macdVal.hist.toFixed(3)})`);
+    if (pa && pa.startsWith("bullish")) confirmations.push(`Price Action: ${labelPA(pa)}`);
+    if (bos === "bullish_bos") confirmations.push("Break of Structure bullish (higher high)");
+  } else if (bias === "SELL") {
+    if (rsiVal != null && rsiVal < 50 && rsiVal > 25) confirmations.push(`RSI(14) = ${rsiVal.toFixed(1)} — momentum bearish`);
+    if (macdVal && macdVal.hist < 0 && macdVal.line < macdVal.signal) confirmations.push(`MACD histogram negatif (${macdVal.hist.toFixed(3)})`);
+    if (pa && pa.startsWith("bearish")) confirmations.push(`Price Action: ${labelPA(pa)}`);
+    if (bos === "bearish_bos") confirmations.push("Break of Structure bearish (lower low)");
+  }
+
+  const valid = bias && checks.sessionOk && checks.newsOk && checks.noActiveSignal && confirmations.length >= 2;
+
+  return {
+    valid, bias, checks, confirmations, ema50, ema200, rsiVal, macdVal, pa, bos, session
+  };
+}
+
+function labelPA(k) {
+  return {
+    bullish_engulfing: "Bullish Engulfing",
+    bearish_engulfing: "Bearish Engulfing",
+    bullish_pinbar: "Bullish Pinbar (rejection bawah)",
+    bearish_pinbar: "Bearish Pinbar (rejection atas)",
+    bullish_rejection: "Bullish Rejection",
+    bearish_rejection: "Bearish Rejection"
+  }[k] || k;
+}
+
+/* =========================================================
+   5. KELLY CRITERION
+   ========================================================= */
+function kellyCriterion(winrate, rr) {
+  // f* = W - (1-W)/R
+  if (rr <= 0) return 0;
+  const f = winrate - (1 - winrate) / rr;
+  return Math.max(0, f);
+}
+
+function getHistoricalWinrate() {
+  const closed = state.signals.filter(s => s.status === "Hit TP" || s.status === "Hit SL");
+  if (closed.length === 0) return 0.55; // baseline konservatif
+  const wins = closed.filter(s => s.status === "Hit TP").length;
+  return wins / closed.length;
+}
+
+/* =========================================================
+   6. BUAT SINYAL
+   ========================================================= */
+function createSignal(analysis) {
+  const bias = analysis.bias;
+  const entry = +state.price.toFixed(2);
+  const slDist = CONFIG.slPips * CONFIG.pip; // dalam USD
+  const tpDist = slDist * CONFIG.rr;
+
+  const sl = bias === "BUY" ? +(entry - slDist).toFixed(2) : +(entry + slDist).toFixed(2);
+  const tp = bias === "BUY" ? +(entry + tpDist).toFixed(2) : +(entry - tpDist).toFixed(2);
+
+  const riskUSD = +(CONFIG.slPips * CONFIG.pipValue).toFixed(2);
+  const rewardUSD = +(riskUSD * CONFIG.rr).toFixed(2);
+
+  const winrate = getHistoricalWinrate();
+  const kelly = kellyCriterion(winrate, CONFIG.rr);
+
+  const reasons = buildReasons(analysis, bias);
+
+  const signal = {
+    id: "SIG-" + Date.now(),
+    time: Date.now(),
+    bias, entry, sl, tp,
+    lot: CONFIG.lot,
+    slPips: CONFIG.slPips,
+    tpPips: CONFIG.slPips * CONFIG.rr,
+    riskUSD, rewardUSD,
+    kelly: +(kelly * 100).toFixed(1),
+    winrate: +(winrate * 100).toFixed(1),
+    reasons,
+    status: "Active",
+    resultPips: null,
+    resultUSD: null,
+    closeTime: null
+  };
+
+  state.signals.unshift(signal);
+  state.active = signal;
+  return signal;
+}
+
+function buildReasons(a, bias) {
+  const r = [];
+  r.push(`Bias trend ${bias} terkonfirmasi: harga ${bias === "BUY" ? "di atas" : "di bawah"} EMA 50 (${a.ema50?.toFixed(2)}) dan EMA 200 (${a.ema200?.toFixed(2)}).`);
+  if (a.session.active) r.push(`Berada di session aktif: ${a.session.name} — likuiditas tinggi, cocok untuk scalping.`);
+  r.push(...a.confirmations);
+  if (bias === "BUY") {
+    r.push(`Setup BUY dengan SL ${CONFIG.slPips} pip (${(CONFIG.slPips * CONFIG.pip).toFixed(1)} USD) dan TP ${CONFIG.slPips * CONFIG.rr} pip — RR tetap 1:${CONFIG.rr}.`);
+  } else {
+    r.push(`Setup SELL dengan SL ${CONFIG.slPips} pip (${(CONFIG.slPips * CONFIG.pip).toFixed(1)} USD) dan TP ${CONFIG.slPips * CONFIG.rr} pip — RR tetap 1:${CONFIG.rr}.`);
+  }
+  r.push(`Lot tetap ${CONFIG.lot}, risiko per sinyal ≈ $${(CONFIG.slPips * CONFIG.pipValue).toFixed(2)}.`);
+  return r;
+}
+
+function isExpired(sig) {
+  if (!sig) return true;
+  if (sig.status !== "Active") return true;
+  return (Date.now() - sig.time) > CONFIG.maxSignalAgeMin * 60 * 1000;
+}
+
+/* =========================================================
+   7. UPDATE SINYAL AKTIF (TP/SL HIT)
+   ========================================================= */
+function updateActiveSignal() {
+  const sig = state.active;
+  if (!sig || sig.status !== "Active") return;
+  if (isExpired(sig)) {
+    sig.status = "Expired";
+    sig.closeTime = Date.now();
+    sig.resultPips = 0;
+    sig.resultUSD = 0;
+    state.active = null;
+    return;
+  }
+
+  const p = state.price;
+  if (sig.bias === "BUY") {
+    if (p >= sig.tp) closeSignal(sig, "Hit TP");
+    else if (p <= sig.sl) closeSignal(sig, "Hit SL");
+  } else {
+    if (p <= sig.tp) closeSignal(sig, "Hit TP");
+    else if (p >= sig.sl) closeSignal(sig, "Hit SL");
+  }
+}
+
+function closeSignal(sig, status) {
+  sig.status = status;
+  sig.closeTime = Date.now();
+  if (status === "Hit TP") {
+    sig.resultPips = sig.tpPips;
+    sig.resultUSD = sig.rewardUSD;
+  } else {
+    sig.resultPips = -sig.slPips;
+    sig.resultUSD = -sig.riskUSD;
+  }
+  if (state.active && state.active.id === sig.id) state.active = null;
+}
+
+/* =========================================================
+   8. RENDER
+   ========================================================= */
+
+function fmt(n, d = 2) { return Number(n).toFixed(d); }
+
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function renderHeader() {
+  const priceEl = document.getElementById("price");
+  const changeEl = document.getElementById("change");
+  const p = state.price;
+  const prev = state.prevPrice || p;
+  const diff = p - prev;
+  const pips = diff / CONFIG.pip;
+  const pct = prev ? (diff / prev) * 100 : 0;
+
+  priceEl.textContent = fmt(p, 2);
+  priceEl.classList.remove("up", "down");
+  changeEl.classList.remove("up", "down");
+
+  if (diff > 0) { priceEl.classList.add("up"); changeEl.classList.add("up"); }
+  else if (diff < 0) { priceEl.classList.add("down"); changeEl.classList.add("down"); }
+
+  const sign = diff >= 0 ? "+" : "";
+  changeEl.textContent = `${sign}${fmt(pips, 1)} pip (${sign}${fmt(pct, 2)}%)`;
+
+  const ms = document.getElementById("marketStatus");
+  const open = isMarketOpen();
+  ms.textContent = open ? "Market Open" : "Market Closed";
+  ms.className = "pill " + (open ? "open" : "closed");
+
+  const ses = getSessionInfo();
+  document.getElementById("sessionInfo").textContent = ses.name;
+
+  const news = hasHighImpactNews();
+  const ni = document.getElementById("newsInfo");
+  ni.textContent = news ? "⚠ High Impact News" : "News: Clear";
+  ni.style.color = news ? "var(--red)" : "var(--muted)";
+}
+
+function renderSignal() {
+  const el = document.getElementById("signalContainer");
+  const sig = state.active;
+
+  if (!sig) {
+    el.innerHTML = `
+      <div class="empty-signal">
+        <div class="icon">📡</div>
+        <p><b>Tidak ada sinyal aktif saat ini</b></p>
+        <small>Sistem sedang memantau kondisi pasar. Sinyal akan muncul hanya jika semua syarat terpenuhi.</small>
+      </div>`;
+    return;
+  }
+
+  const cls = sig.bias === "BUY" ? "buy" : "sell";
+  const statusCls = sig.status === "Active" ? "status-active"
+    : sig.status === "Hit TP" ? "status-tp"
+    : sig.status === "Hit SL" ? "status-sl" : "status-exp";
+
+  const dur = Math.round((Date.now() - sig.time) / 60000);
+
+  el.innerHTML = `
+    <div class="signal-card ${cls}">
+      <div class="signal-head">
+        <div class="signal-dir">
+          <span class="dir-badge">${sig.bias}</span>
+          <span>${CONFIG.symbol}</span>
+        </div>
+        <span class="signal-status ${statusCls}">${sig.status}</span>
+      </div>
+
+      <div class="grid-4">
+        <div class="stat-box"><div class="label">Entry</div><div class="value">${fmt(sig.entry)}</div></div>
+        <div class="stat-box"><div class="label">Stop Loss</div><div class="value sell">${fmt(sig.sl)}</div></div>
+        <div class="stat-box"><div class="label">Take Profit</div><div class="value buy">${fmt(sig.tp)}</div></div>
+        <div class="stat-box"><div class="label">Lot</div><div class="value">${sig.lot}</div></div>
+      </div>
+
+      <div class="grid-4">
+        <div class="stat-box"><div class="label">Risk (USD)</div><div class="value sell">-$${fmt(sig.riskUSD)}</div></div>
+        <div class="stat-box"><div class="label">Reward (USD)</div><div class="value buy">+$${fmt(sig.rewardUSD)}</div></div>
+        <div class="stat-box"><div class="label">Kelly Criterion</div><div class="value" style="color:var(--accent)">${sig.kelly}%</div></div>
+        <div class="stat-box"><div class="label">R:R</div><div class="value">1:${CONFIG.rr}</div></div>
+      </div>
+
+      <div class="reason-box">
+        <h4>📌 Alasan Entry</h4>
+        <ul>${sig.reasons.map(r => `<li>${r}</li>`).join("")}</ul>
+      </div>
+
+      <div class="signal-meta">
+        <span>🕐 Sinyal keluar: <b>${fmtTime(sig.time)}</b> (${dur} menit lalu)</span>
+        <span>📊 Winrate historis: <b>${sig.winrate}%</b></span>
+        <span>🆔 ${sig.id}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderStats() {
+  const closed = state.signals.filter(s => s.status === "Hit TP" || s.status === "Hit SL");
+  const total = state.signals.length;
+  const wins = closed.filter(s => s.status === "Hit TP").length;
+  const losses = closed.filter(s => s.status === "Hit SL").length;
+  const winrate = closed.length ? (wins / closed.length) * 100 : 0;
+
+  const totalPips = closed.reduce((a, s) => a + (s.resultPips || 0), 0);
+  const totalUSD = closed.reduce((a, s) => a + (s.resultUSD || 0), 0);
+
+  const avgR = closed.length
+    ? closed.reduce((a, s) => a + (s.status === "Hit TP" ? CONFIG.rr : -1), 0) / closed.length
+    : 0;
+
+  const best = closed.length ? Math.max(...closed.map(s => s.resultPips || 0)) : 0;
+  const worst = closed.length ? Math.min(...closed.map(s => s.resultPips || 0)) : 0;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = state.signals.filter(s => s.time >= today.getTime()).length;
+
+  const el = document.getElementById("statsGrid");
+  el.innerHTML = `
+    <div class="stat-card"><div class="label">Total Sinyal</div><div class="value">${total}</div><div class="sub">${wins}W / ${losses}L</div></div>
+    <div class="stat-card"><div class="label">Winrate</div><div class="value ${winrate >= 50 ? 'green' : 'red'}">${fmt(winrate, 1)}%</div><div class="sub">dari ${closed.length} closed</div></div>
+    <div class="stat-card"><div class="label">Average R</div><div class="value ${avgR >= 0 ? 'green' : 'red'}">${avgR >= 0 ? '+' : ''}${fmt(avgR, 2)}R</div><div class="sub">per trade</div></div>
+    <div class="stat-card"><div class="label">Total P/L (Pip)</div><div class="value ${totalPips >= 0 ? 'green' : 'red'}">${totalPips >= 0 ? '+' : ''}${fmt(totalPips, 1)}</div><div class="sub">akumulasi</div></div>
+    <div class="stat-card"><div class="label">Estimasi USD</div><div class="value ${totalUSD >= 0 ? 'green' : 'red'}">${totalUSD >= 0 ? '+' : ''}$${fmt(totalUSD)}</div><div class="sub">lot 0.01</div></div>
+    <div class="stat-card"><div class="label">Best Trade</div><div class="value green">+${fmt(best, 1)} pip</div></div>
+    <div class="stat-card"><div class="label">Worst Trade</div><div class="value red">${fmt(worst, 1)} pip</div></div>
+    <div class="stat-card"><div class="label">Sinyal Hari Ini</div><div class="value">${todayCount}</div><div class="sub">sejak 00:00</div></div>
+  `;
+}
+
+let filterResult = "all";
+let filterTime = "today";
+
+function renderHistory() {
+  const tbody = document.getElementById("historyBody");
+  let list = [...state.signals];
+
+  const now = Date.now();
+  if (filterTime === "today") {
+    const d = new Date(); d.setHours(0,0,0,0);
+    list = list.filter(s => s.time >= d.getTime());
+  } else if (filterTime === "7d") {
+    list = list.filter(s => s.time >= now - 7 * 864e5);
+  } else if (filterTime === "30d") {
+    list = list.filter(s => s.time >= now - 30 * 864e5);
+  }
+
+  if (filterResult === "profit") list = list.filter(s => s.status === "Hit TP");
+  else if (filterResult === "loss") list = list.filter(s => s.status === "Hit SL");
+
+  list.sort((a, b) => b.time - a.time);
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-table">Belum ada sinyal pada filter ini.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    const resTag = s.status === "Hit TP" ? `<span class="tag profit">Profit</span>`
+      : s.status === "Hit SL" ? `<span class="tag loss">Loss</span>`
+      : s.status === "Expired" ? `<span class="tag be">Expired</span>`
+      : `<span class="tag be">Active</span>`;
+
+    const pips = s.resultPips == null ? "—" : (s.resultPips >= 0 ? "+" : "") + fmt(s.resultPips, 1);
+    const usd = s.resultUSD == null ? "—" : (s.resultUSD >= 0 ? "+" : "") + "$" + fmt(Math.abs(s.resultUSD));
+    const pipsCls = s.resultPips > 0 ? "green" : s.resultPips < 0 ? "red" : "";
+    const usdCls = s.resultUSD > 0 ? "green" : s.resultUSD < 0 ? "red" : "";
+
+    return `<tr>
+      <td>${fmtTime(s.time)}</td>
+      <td><span class="tag ${s.bias.toLowerCase()}">${s.bias}</span></td>
+      <td>${fmt(s.entry)}</td>
+      <td>${fmt(s.sl)}</td>
+      <td>${fmt(s.tp)}</td>
+      <td>${resTag}</td>
+      <td class="${pipsCls}">${pips}</td>
+      <td class="${usdCls}">${usd}</td>
+      <td style="color:var(--muted); max-width:280px; white-space:normal;">${s.reasons[0]}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderAll() {
+  renderHeader();
+  renderSignal();
+  renderStats();
+  renderHistory();
+}
+
+/* =========================================================
+   9. LOOP UTAMA
+   ========================================================= */
+function tick() {
+  nextTick();
+  updateActiveSignal();
+
+  // Auto-generate sinyal bila kondisi valid
+  if (!state.active) {
+    const analysis = analyzeSignal();
+    if (analysis.valid) {
+      createSignal(analysis);
+    }
+  }
+
+  renderAll();
+}
+
+function manualSimulate() {
+  // Paksa kondisi untuk demo: bypass beberapa check
+  const closes = state.candles.map(c => c.c);
+  const ema50 = ema(closes, CONFIG.emaFast);
+  const ema200 = ema(closes, CONFIG.emaSlow);
+  const rsiVal = rsi(closes, CONFIG.rsiPeriod);
+  const macdVal = macd(closes);
+  const session = getSessionInfo();
+
+  // Bersihkan sinyal aktif lama
+  if (state.active) closeSignal(state.active, "Expired");
+
+  const bias = state.price >= ema50 ? "BUY" : "SELL";
+  const analysis = {
+    bias,
+    session,
+    ema50, ema200, rsiVal, macdVal,
+    confirmations: [
+      `RSI(14) = ${rsiVal?.toFixed(1)} — momentum ${bias === "BUY" ? "bullish" : "bearish"}`,
+      `MACD histogram ${bias === "BUY" ? "positif" : "negatif"} (${macdVal?.hist.toFixed(3)})`,
+      `Price Action mendukung arah ${bias}`
+    ]
+  };
+  createSignal(analysis);
+  renderAll();
+}
+
+/* =========================================================
+   10. INIT
+   ========================================================= */
+function init() {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  seedCandles(260);
+
+  // Seed beberapa sinyal historis untuk demo statistik
+  seedDemoHistory();
+
+  document.getElementById("refreshBtn").addEventListener("click", () => {
+    state.candles = [];
+    seedCandles(260);
+    renderAll();
+  });
+  document.getElementById("simulateBtn").addEventListener("click", manualSimulate);
+
+  document.getElementById("filterResult").addEventListener("click", e => {
+    if (e.target.dataset.r) {
+      [...e.currentTarget.children].forEach(b => b.classList.remove("active"));
+      e.target.classList.add("active");
+      filterResult = e.target.dataset.r;
+      renderHistory();
+    }
+  });
+  document.getElementById("filterTime").addEventListener("click", e => {
+    if (e.target.dataset.t) {
+      [...e.currentTarget.children].forEach(b => b.classList.remove("active"));
+      e.target.classList.add("active");
+      filterTime = e.target.dataset.t;
+      renderHistory();
+    }
+  });
+
+  renderAll();
+  state.tickTimer = setInterval(tick, 1500);
+}
+
+function seedDemoHistory() {
+  const now = Date.now();
+  const demos = [
+    { bias: "BUY", status: "Hit TP", offsetH: 2 },
+    { bias: "SELL", status: "Hit SL", offsetH: 4 },
+    { bias: "BUY", status: "Hit TP", offsetH: 6 },
+    { bias: "BUY", status: "Hit TP", offsetH: 9 },
+    { bias: "SELL", status: "Hit TP", offsetH: 22 },
+    { bias: "BUY", status: "Hit SL", offsetH: 26 },
+    { bias: "SELL", status: "Hit TP", offsetH: 30 },
+    { bias: "BUY", status: "Hit TP", offsetH: 50 },
+    { bias: "SELL", status: "Hit SL", offsetH: 70 },
+    { bias: "BUY", status: "Hit TP", offsetH: 96 }
+  ];
+  demos.forEach((d, i) => {
+    const t = now - d.offsetH * 3600 * 1000;
+    const entry = +(BASE_PRICE + (Math.random() - 0.5) * 8).toFixed(2);
+    const slDist = CONFIG.slPips * CONFIG.pip;
+    const tpDist = slDist * CONFIG.rr;
+    const sl = d.bias === "BUY" ? entry - slDist : entry + slDist;
+    const tp = d.bias === "BUY" ? entry + tpDist : entry - tpDist;
+    const win = d.status === "Hit TP";
+    state.signals.push({
+      id: "SIG-DEMO-" + i,
+      time: t,
+      bias: d.bias,
+      entry: +entry.toFixed(2),
+      sl: +sl.toFixed(2),
+      tp: +tp.toFixed(2),
+      lot: CONFIG.lot,
+      slPips: CONFIG.slPips,
+      tpPips: CONFIG.slPips * CONFIG.rr,
+      riskUSD: +(CONFIG.slPips * CONFIG.pipValue).toFixed(2),
+      rewardUSD: +(CONFIG.slPips * CONFIG.rr * CONFIG.pipValue).toFixed(2),
+      kelly: 12.5,
+      winrate: 55,
+      reasons: [
+        `Bias ${d.bias} sesuai EMA 50/200`,
+        `Konfirmasi RSI + MACD searah`,
+        `Session London/NY aktif`
+      ],
+      status: d.status,
+      resultPips: win ? CONFIG.slPips * CONFIG.rr : -CONFIG.slPips,
+      resultUSD: win ? CONFIG.slPips * CONFIG.rr * CONFIG.pipValue : -CONFIG.slPips * CONFIG.pipValue,
+      closeTime: t + 30 * 60 * 1000
+    });
+  });
+  state.signals.sort((a, b) => b.time - a.time);
+}
+
+init();
+</script>
+</body>
+</html>
